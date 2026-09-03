@@ -1,0 +1,105 @@
+/* ============================================
+   ANIMATIONS - Solo lo esencial, sutil y técnico
+   No hay shake, wave, bounce, ni glow dramático
+   ============================================ */
+
+/* === KEYFRAMES === */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes liveDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+@keyframes liveRing {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* === ENTRADA ESCALONADA === */
+.header { animation: fadeInUp 400ms ease-out backwards; }
+.status-banner { animation: fadeInUp 400ms ease-out 80ms backwards; }
+.control-bar { animation: fadeInUp 400ms ease-out 120ms backwards; }
+.hero-section { animation: fadeInUp 400ms ease-out 160ms backwards; }
+.metrics-grid { animation: fadeInUp 400ms ease-out 200ms backwards; }
+.prediction-section { animation: fadeInUp 400ms ease-out 240ms backwards; }
+.chart-section { animation: fadeInUp 400ms ease-out 280ms backwards; }
+.footer { animation: fadeInUp 400ms ease-out 320ms backwards; }
+
+/* === LIVE DOT === */
+.status-pill-dot {
+  animation: liveDot 2s ease-in-out infinite;
+}
+
+.status-pill-dot::after {
+  animation: liveRing 2s ease-out infinite;
+}
+
+/* === ICONO DE STATUS - solo en críticos === */
+.status-banner.is-critical .status-icon {
+  animation: subtlePulse 1.5s ease-in-out infinite;
+}
+
+/* === HOVER ESTADO PROFESIONAL === */
+.metric-card,
+.prediction-card {
+  transition: border-color var(--t-base), background-color var(--t-base);
+}
+
+/* === NUMBER CHANGE EFFECT - micro-pulse sutil === */
+.value-updated {
+  animation: numberUpdate 600ms ease-out;
+}
+
+@keyframes numberUpdate {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

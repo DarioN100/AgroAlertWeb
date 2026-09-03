@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgroAlert — Telemetría de campo</title>
+  <meta name="description" content="Sistema IoT antiheladas. Telemetría en vivo, análisis predictivo y alertas inteligentes.">
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/theme.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/assistant.css">
+</head>
+<body>
+
+  <!-- Loading -->
+  <div id="loading" class="loading">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Conectando</div>
+    </div>
+  </div>
+
+  <!-- Indicador de demo (oculto por defecto) -->
+  <div id="demo-indicator" class="demo-indicator">
+    <span class="demo-indicator-dot"></span>
+    <span>Modo demo activo</span>
+  </div>
+
+  <main class="app">
+
+    <!-- === HEADER === -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3c0 1.6.8 3 2 4l1 1 1-1c1.2-1 2-2.4 2-4a3 3 0 0 0-3-3z"/>
+            <path d="M5 11c-1.7 0-3 1.3-3 3 0 2 2 4 4 4h2v-2c0-2.7-1.3-5-3-5z"/>
+            <path d="M19 11c1.7 0 3 1.3 3 3 0 2-2 4-4 4h-2v-2c0-2.7 1.3-5 3-5z"/>
+            <path d="M12 11v11"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">AgroAlert</span>
+          <span class="brand-sub">Telemetría de campo</span>
+        </div>
+      </div>
+
+      <div class="header-meta">
+        <div id="clock" class="clock">
+          <span>—</span>
+        </div>
+        <div class="status-pill">
+          <span class="status-pill-dot"></span>
+          <span>En línea</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- === ERROR (oculto) === -->
+    <div id="error-banner" class="error-banner"></div>
+
+    <!-- === STATUS BANNER === -->
+    <div id="status-banner" class="status-banner is-ok">
+      <div id="status-icon" class="status-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="status-info">
+        <span id="status-title" class="status-title">Cargando estado del sistema</span>
+        <span id="status-desc" class="status-desc">Conectando con el sensor</span>
+      </div>
+      <div class="status-thresholds">
+        <div class="threshold-item">
+          <span class="threshold-label">Atención</span>
+          <span id="threshold-warning" class="threshold-value">—</span>
+        </div>
+        <div class="threshold-item">
+          <span class="threshold-label">Crítico</span>
+          <span id="threshold-critical" class="threshold-value">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- === CONTROL BAR === -->
+    <div class="control-bar">
+      <div class="crop-info">
+        <span id="crop-emoji" class="crop-emoji">🫒</span>
+        <div class="crop-text">
+          <span class="crop-text-label">Cultivo monitoreado</span>
+          <span id="crop-name" class="crop-text-name">Olivos</span>
+        </div>
+      </div>
+      <div class="crop-selector-wrap">
+        <select id="crop-selector" class="crop-selector">
+          <option value="olivos">Olivos</option>
+          <option value="vid">Vid</option>
+          <option value="nogal">Nogal</option>
+          <option value="carozo">Frutales de carozo</option>
+          <option value="pepita">Frutales de pepita</option>
+          <option value="hortalizas">Hortalizas</option>
+          <option value="citricos">Cítricos</option>
+          <option value="general">Genérico</option>
+        </select>
+        <span class="crop-selector-arrow">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- === HERO METRIC === -->
+    <section class="hero-section">
+      <div class="hero-label">
+        <span class="hero-label-text">Temperatura del aire</span>
+        <div class="hero-label-line"></div>
+      </div>
+
+      <div class="hero-value-row">
+        <span id="hero-value" class="hero-value mono">—</span>
+        <span class="hero-unit mono">°C</span>
+      </div>
+
+      <div class="hero-trend">
+        <div class="trend-item">
+          <span id="hero-trend-icon" class="trend-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </span>
+          <div>
+            <div class="trend-label">Tendencia</div>
+            <div id="hero-trend-label" class="trend-value mono">—</div>
+          </div>
+        </div>
+
+        <div class="trend-item">
+          <div>
+            <div class="trend-label">Velocidad</div>
+            <div id="hero-trend-value" class="trend-value mono">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- === MÉTRICAS SECUNDARIAS === -->
+    <div class="metrics-grid">
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Humedad del aire</span>
+          <span class="metric-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5C7.86 21.5 4.5 18.14 4.5 14c0-4.16 5.59-11.83 6.91-13.59a.74.74 0 0 1 1.18 0C13.91 2.17 19.5 9.84 19.5 14c0 4.14-3.36 7.5-7.5 7.5z"/></svg>
+          </span>
+        </div>
+        <div class="metric-value-row">
+          <span id="metric-humidity" class="metric-value mono">—</span>
+          <span class="metric-unit mono">%</span>
+        </div>
+        <div class="metric-sub">Humedad relativa ambiente</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Humedad del suelo</span>
+          <span class="metric-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M7 20V8"/><path d="M11 20V12"/><path d="M15 20V8"/><path d="M19 20V14"/></svg>
+          </span>
+        </div>
+        <div class="metric-value-row">
+          <span id="metric-soil" class="metric-value mono">—</span>
+          <span class="metric-unit mono">%</span>
+        </div>
+        <div class="metric-sub">Sensor capacitivo HW-390</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Punto de rocío</span>
+          <span class="metric-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3v18"/></svg>
+          </span>
+        </div>
+        <div class="metric-value-row">
+          <span id="metric-dew" class="metric-value mono">—</span>
+          <span class="metric-unit mono">°C</span>
+        </div>
+        <div id="metric-dew-diff" class="metric-sub">Δ — respecto al aire</div>
+      </div>
+
+    </div>
+
+    <!-- === PREDICCIÓN === -->
+    <section class="prediction-section">
+
+      <div id="prediction-card-trend" class="prediction-card">
+        <div class="prediction-card-header">
+          <span class="prediction-card-title">Análisis predictivo</span>
+          <span class="prediction-card-indicator"></span>
+        </div>
+        <div class="prediction-value-block">
+          <span id="prediction-trend-value" class="prediction-value mono">—</span>
+          <span id="prediction-trend-suffix" class="prediction-value-suffix mono"></span>
+        </div>
+        <p id="prediction-trend-desc" class="prediction-desc">Regresión lineal sobre las últimas 20 lecturas del sensor.</p>
+      </div>
+
+      <div id="prediction-card-time" class="prediction-card">
+        <div class="prediction-card-header">
+          <span class="prediction-card-title">Tiempo proyectado</span>
+          <span class="prediction-card-indicator"></span>
+        </div>
+        <div class="prediction-meta" style="border-top: none; padding-top: 0; margin-top: var(--space-2);">
+          <div class="prediction-meta-item">
+            <span class="prediction-meta-label">Al umbral atención</span>
+            <span id="prediction-time-warning" class="prediction-meta-value">—</span>
+          </div>
+          <div class="prediction-meta-item">
+            <span class="prediction-meta-label">Al umbral crítico</span>
+            <span id="prediction-time-critical" class="prediction-meta-value">—</span>
+          </div>
+        </div>
+        <p class="prediction-desc" style="margin-top: var(--space-4);">Proyección basada en la pendiente actual de temperatura.</p>
+      </div>
+
+    </section>
+
+    <!-- === GRÁFICO === -->
+    <section class="chart-section">
+      <div class="chart-header">
+        <div class="chart-title-block">
+          <h2 class="chart-title">Evolución de la temperatura</h2>
+          <p class="chart-subtitle">Últimas 2 horas · ThingSpeak en tiempo real</p>
+        </div>
+        <div class="chart-stats">
+          <div class="chart-stat">
+            <span class="chart-stat-label">Mínima</span>
+            <span id="chart-stat-min" class="chart-stat-value mono">—</span>
+          </div>
+          <div class="chart-stat">
+            <span class="chart-stat-label">Máxima</span>
+            <span id="chart-stat-max" class="chart-stat-value mono">—</span>
+          </div>
+          <div class="chart-stat">
+            <span class="chart-stat-label">Tendencia</span>
+            <span id="chart-stat-trend" class="chart-stat-value mono">—</span>
+          </div>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="temp-chart"></canvas>
+      </div>
+    </section>
+
+    <!-- === ASISTENTE IA === -->
+    <section class="ia-section">
+      <div class="ia-header">
+        <div class="ia-title-block">
+          <h2 class="ia-title">
+            <span class="ia-title-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-1H3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/><circle cx="8.5" cy="13.5" r="1.5" fill="currentColor"/><circle cx="15.5" cy="13.5" r="1.5" fill="currentColor"/></svg>
+            </span>
+            Agrónomo Digital
+          </h2>
+          <p class="ia-subtitle">Asistente con IA · combina los datos del campo en vivo con el modelo Gemini</p>
+        </div>
+        <div class="ia-badge">
+          <span class="ia-badge-dot"></span>
+          <span>IA activa</span>
+        </div>
+      </div>
+
+      <!-- Flujo de datos (los pasos que se encienden) -->
+      <div id="ia-flujo" class="ia-flujo">
+
+        <div id="paso-enviada" class="ia-paso">
+          <div class="ia-paso-icono">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+          <div class="ia-paso-texto">
+            <span class="ia-paso-nombre">Pregunta enviada</span>
+            <span class="ia-paso-desc">Desde la app al sistema</span>
+          </div>
+          <div class="ia-paso-check"></div>
+        </div>
+
+        <div class="ia-flecha">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+
+        <div id="paso-sensores" class="ia-paso">
+          <div class="ia-paso-icono">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/></svg>
+          </div>
+          <div class="ia-paso-texto">
+            <span class="ia-paso-nombre">Lee sensores en vivo</span>
+            <span id="paso-sensores-datos" class="ia-paso-desc mono">Temperatura, humedad, suelo</span>
+          </div>
+          <div class="ia-paso-check"></div>
+        </div>
+
+        <div class="ia-flecha">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+
+        <div id="paso-prompt" class="ia-paso">
+          <div class="ia-paso-icono">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="ia-paso-texto">
+            <span class="ia-paso-nombre">Arma el contexto</span>
+            <span class="ia-paso-desc">Datos + cultivo + pregunta</span>
+          </div>
+          <div class="ia-paso-check"></div>
+        </div>
+
+        <div class="ia-flecha">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+
+        <div id="paso-ia" class="ia-paso ia-paso-destacado">
+          <div class="ia-paso-icono ia-red-neuronal">
+            <!-- Red neuronal simple (decorativa, etiquetada como modelo Gemini) -->
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+              <line class="nn-link" x1="6" y1="8" x2="16" y2="6" />
+              <line class="nn-link" x1="6" y1="8" x2="16" y2="16" />
+              <line class="nn-link" x1="6" y1="24" x2="16" y2="16" />
+              <line class="nn-link" x1="6" y1="24" x2="16" y2="26" />
+              <line class="nn-link" x1="16" y1="6" x2="26" y2="16" />
+              <line class="nn-link" x1="16" y1="16" x2="26" y2="16" />
+              <line class="nn-link" x1="16" y1="26" x2="26" y2="16" />
+              <circle class="nn-node" cx="6" cy="8" r="2.5" />
+              <circle class="nn-node" cx="6" cy="24" r="2.5" />
+              <circle class="nn-node" cx="16" cy="6" r="2.5" />
+              <circle class="nn-node" cx="16" cy="16" r="2.5" />
+              <circle class="nn-node" cx="16" cy="26" r="2.5" />
+              <circle class="nn-node" cx="26" cy="16" r="2.5" />
+            </svg>
+          </div>
+          <div class="ia-paso-texto">
+            <span class="ia-paso-nombre">Procesa con IA</span>
+            <span class="ia-paso-desc">Modelo Gemini de Google</span>
+          </div>
+          <div class="ia-paso-check"></div>
+        </div>
+
+        <div class="ia-flecha">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+
+        <div id="paso-respuesta" class="ia-paso">
+          <div class="ia-paso-icono">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="ia-paso-texto">
+            <span class="ia-paso-nombre">Respuesta lista</span>
+            <span class="ia-paso-desc">Recomendación para el campo</span>
+          </div>
+          <div class="ia-paso-check"></div>
+        </div>
+
+      </div>
+
+      <!-- Caja de respuesta -->
+      <div id="ia-respuesta" class="ia-respuesta"></div>
+
+      <!-- Input de pregunta -->
+      <div class="ia-input-row">
+        <input
+          id="ia-input"
+          class="ia-input"
+          type="text"
+          placeholder="Preguntale algo al Agrónomo Digital…"
+          autocomplete="off"
+        />
+        <button id="ia-enviar" class="ia-enviar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span>Preguntar</span>
+        </button>
+      </div>
+
+      <!-- Preguntas sugeridas -->
+      <div class="ia-sugerencias">
+        <button class="ia-sugerencia">¿Hay riesgo de helada esta noche?</button>
+        <button class="ia-sugerencia">¿Tengo que regar?</button>
+        <button class="ia-sugerencia">¿Cómo está la humedad del suelo?</button>
+      </div>
+    </section>
+
+    <!-- === FOOTER === -->
+    <footer class="footer">
+      <div class="footer-brand">
+        <strong>AgroAlert</strong>
+        <span class="footer-sep">·</span>
+        <span>Stefy &amp; Ara</span>
+        <span class="footer-sep">·</span>
+        <span>Escuela Agrotécnica · La Rioja · 2026</span>
+      </div>
+      <div class="footer-update">
+        <span class="footer-update-dot"></span>
+        <span>Sincronizado <span id="last-update">—</span></span>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Botón demo -->
+  <button id="demo-btn" class="demo-btn" title="Activar modo demo (tecla D)">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    <span>Modo demo</span>
+  </button>
+
+  <!-- Librerías -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/thingspeak.js"></script>
+  <script src="js/predictor.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/assistant.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
